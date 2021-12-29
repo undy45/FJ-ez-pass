@@ -18,13 +18,25 @@ class EasyPass:
         self.solve_tests(links)
 
     def solve_tests(self, links):
-        for link in links:
+        for link in links[4:]:
             self.driver.get(link)
             self.find(By.XPATH, "//button[contains(text(), 'Spustit nový odpovědník')]").click()
             self.find(By.XPATH, "//button[contains(text(), 'Odevzdat')]").click()
             self.find(By.LINK_TEXT, "Prohlídka").click()
-            answers = self.driver.find_elements_by_xpath("//span[@class='ok']")
-            answers = [answer.text[1:-1].split(',')[0].strip() for answer in answers]
+            divs = self.driver.find_elements_by_xpath("//section[@class='odpo_otazka_telo']")
+            answers = []
+            for div in divs:
+                question, answer = div.text.split('\n')
+                answer = answer.strip()[1:-1].strip()
+                comma_count = question.count(',')
+                if comma_count != answer.count(','):
+                    answer_end_index = -1
+                    answer_comma_count = 0
+                    while answer_comma_count <= comma_count:
+                        answer_end_index = answer[answer_end_index + 1:].find(',')
+                        answer_comma_count += 1
+                    answer = answer[:answer_end_index].strip()
+                answers.append(answer)
             self.find(By.XPATH, "//a[contains(text(), 'Zpět')]").click()
             self.find(By.XPATH, "//div[@class='shrink column']/a[contains(text(), 'Znovu odpovídat')]").click()
             cells = self.driver.find_elements_by_xpath("//input[@type='text']")
